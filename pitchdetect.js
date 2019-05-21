@@ -31,6 +31,8 @@ var analyser = null;
 var theBuffer = null;
 var DEBUGCANVAS = null;
 var mediaStreamSource = null;
+var median = null;
+var pitchArray = [];
 var detectorElem,
 	canvasElem,
 	waveCanvas,
@@ -120,6 +122,12 @@ function gotStream(stream) {
 	updatePitch();
 }
 
+function calcMedian(arr) {
+	const mid = Math.floor(arr.length / 2);
+	const nums = [...arr].sort((a, b) => a - b);
+	return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+}
+
 function toggleLiveInput() {
 	if (isPlaying) {
 		//stop playing and return
@@ -129,6 +137,12 @@ function toggleLiveInput() {
 		if (!window.cancelAnimationFrame)
 			window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
 		window.cancelAnimationFrame(rafID);
+		if(median){
+			pitchElem.innerText = calcMedian(pitchArray) > median ? "high" : "low";
+		} else {
+			median = calcMedian(pitchArray);
+			pitchArray = [];
+		}
 	} else {
 		isPlaying = true;
 		getUserMedia(
@@ -148,35 +162,6 @@ function toggleLiveInput() {
 
 function textInButton() {
 	return isPlaying ? "stop" : "start";
-}
-
-function togglePlayback() {
-	if (isPlaying) {
-		//stop playing and return
-		sourceNode.stop(0);
-		sourceNode = null;
-		analyser = null;
-		isPlaying = false;
-		if (!window.cancelAnimationFrame)
-			window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-		window.cancelAnimationFrame(rafID);
-		return "start";
-	}
-
-	sourceNode = audioContext.createBufferSource();
-	sourceNode.buffer = theBuffer;
-	sourceNode.loop = true;
-
-	analyser = audioContext.createAnalyser();
-	analyser.fftSize = 2048;
-	sourceNode.connect(analyser);
-	analyser.connect(audioContext.destination);
-	sourceNode.start(0);
-	isPlaying = true;
-	isLiveInput = false;
-	updatePitch();
-
-	return "stop";
 }
 
 var rafID = null;
@@ -333,6 +318,7 @@ function updatePitch(time) {
 		detectorElem.className = "confident";
 		pitch = ac;
 		pitchElem.innerText = Math.round(pitch);
+		pitchArray.push(pitchElem.innerText);
 		var note = noteFromPitch(pitch);
 		noteElem.innerHTML = noteStrings[note % 12];
 		var detune = centsOffFromPitch(pitch, note);
