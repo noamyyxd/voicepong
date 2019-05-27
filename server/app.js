@@ -64,12 +64,14 @@ io.on('connection', (socket) => {
 
         socket.on('hit', (diskData) => {
             socket.broadcast.emit('playerHit', diskData);
-        })
+        });
+
+        socket.on('chooseKey', (key) => {
+            socket.broadcast.emit('keyChosen', key);
+        });
     } 
 });
 
 server.listen(1010, () => {
     console.log(`Listening on ${server.address().port}`);
 });
-
-//app.listen(1010);
