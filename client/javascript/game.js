@@ -24,7 +24,7 @@ var playerStrength = 0;
 var key;
 var goodInput = false;
 var goodEnemyInput = false;
-//var controller = new Controller();
+var controller = new Controller();
 var isGamePaused = true;
 var gameOver = false;
 var letters = [
@@ -154,7 +154,7 @@ function create() {
     loserText.visible = false;
 
     // Set controller
-    // controller.initiate();
+    controller.initiate();
 
     cursorOne = this.input.keyboard.addKeys({
         'up': Phaser.Input.Keyboard.KeyCodes.UP,
@@ -407,24 +407,11 @@ function update() {
     }
 }
 
-const checkPlayersMovement = (self, player, cursor) => {
-    if (cursor.up.isDown) {
-        player.setVelocityY(-playerSpeed);
-        self.socket.emit('playerMovement', { y: -1 });
-    } else if (cursor.down.isDown) {
-        player.setVelocityY(playerSpeed);
-        self.socket.emit('playerMovement', { y: 1 });
-    } else {
-        player.setVelocityY(0);
-        self.socket.emit('playerStopped');
-    }
-}
-
-// const checkPlayersMovement = (self, player) => {
-//     if (controller.isUp) {
+// const checkPlayersMovement = (self, player, cursor) => {
+//     if (cursor.up.isDown) {
 //         player.setVelocityY(-playerSpeed);
 //         self.socket.emit('playerMovement', { y: -1 });
-//     } else if (controller.isDown) {
+//     } else if (cursor.down.isDown) {
 //         player.setVelocityY(playerSpeed);
 //         self.socket.emit('playerMovement', { y: 1 });
 //     } else {
@@ -432,6 +419,19 @@ const checkPlayersMovement = (self, player, cursor) => {
 //         self.socket.emit('playerStopped');
 //     }
 // }
+
+const checkPlayersMovement = (self, player) => {
+    if (controller.isUp) {
+        player.setVelocityY(-playerSpeed);
+        self.socket.emit('playerMovement', { y: -1 });
+    } else if (controller.isDown) {
+        player.setVelocityY(playerSpeed);
+        self.socket.emit('playerMovement', { y: 1 });
+    } else {
+        player.setVelocityY(0);
+        self.socket.emit('playerStopped');
+    }
+}
 
 const isDiskOut = () => {
     return ((disk.x >= field.displayWidth) || (disk.x <= 0));
@@ -451,14 +451,14 @@ const nextTurn = (self) => {
         sing();
         enableSing = true;
         setTimeout(() => {
-            enableSing = false;
-        }, 10000);
-        setTimeout(() => {
             hideKeys();
+            enableSing = false;
+            console.log(textInteriorSong);
+            console.log(textSong);
             updateScore();
             resetGame();
             continueGame();
-        }, 2000);
+        }, 10000);
     }
 
     if ((player.score + enemy.score) === letters.length) {
@@ -500,7 +500,7 @@ const chooseLetter = (self) => {
 
 const pauseGame = () => {
     isGamePaused = true;
-    // controller.disable();
+    controller.disable();
 
     disk.setVelocity(0);
     disk.body.enable = false;
@@ -524,7 +524,7 @@ const pauseGame = () => {
 
 const continueGame = () => {
     isGamePaused = false;
-    // controller.enable();
+    controller.enable();
 
     diskSpeed = window.innerWidth * diskSpeedScale;
     disk.setVelocityX(lastHit * diskSpeed);
@@ -599,3 +599,5 @@ const hideKeys = () => {
         letter.text.visible = false;
     });
 }
+
+

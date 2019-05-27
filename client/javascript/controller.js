@@ -2,35 +2,35 @@ class Controller {
     constructor() {
         this.isUp = false;
         this.isDown = false;
-        this.enable = false;
+        this.enableController = false;
         this.avgHz = undefined;
     }
 
     initiate() {
-        tune();
-
-        while (true) {
-            if (getInput() === 1) {
+        this.tune();
+		startVoice();
+        setInterval (()=> {
+            if (this.getInput() === 1) {
                 this.isUp = true;
                 this.isDown = false;
-            } else if (getInput() === -1) {
+            } else if (this.getInput() === -1) {
                 this.isUp = false;
                 this.isDown = true;
             } else {
                 this.isUp = false;
                 this.isDown = false;
             }
-        }
+        }, 1);
     }
     
     getInput() {
-        if (this.enable) {
+        if (this.enableController) {
 
             // Add whatever logic of the input here and put the input in the if condition.
             // return 1 if the bat should go up (high pitch) and -1 if the bar should go down (low pitch)
-            if (input() > this.avgHz) {
+            if (this.input() > this.avgHz) {
                 return 1;    
-            } else if(input() < this.avgHz) {
+            } else if(this.input() < this.avgHz) {
                 return -1;
             } else {
                 return 0;
@@ -39,21 +39,22 @@ class Controller {
     }
 
     tune() {
-        toggleLiveInput();
+		startVoice();
+		// Show sentence
+        stopVoice();		
         this.avgHz = median;
     }
 
     enable() {
-        this.enable = true;
+        this.enableController = true;
     }
 
     disable() {
-        this.enable = false;
+        this.enableController = false;
     }
 
     input() {
-        toggleLiveInput();
-        return pitchElem.innerText;
+        return pitchArray[pitchArray.length-1];
     }
 }
 
@@ -145,35 +146,63 @@ function calcMedian(arr) {
 	return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
 }
 
-function toggleLiveInput() {
-	if (isPlaying) {
-		//stop playing and return
-		sourceNode = null;
-		analyser = null;
-		isPlaying = false;
-		if (!window.cancelAnimationFrame)
-			window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-		window.cancelAnimationFrame(rafID);
-		if(median){
-			pitchElem.innerText = calcMedian(pitchArray);
-		} else {
-			median = calcMedian(pitchArray);
-			pitchArray = [];
-		}
-	} else {
-		isPlaying = true;
-		getUserMedia(
-			{
-				"audio": {
-					"mandatory": {
-						"googEchoCancellation": "false",
-						"googAutoGainControl": "false",
-						"googNoiseSuppression": "false",
-						"googHighpassFilter": "false"
-					},
-					"optional": []
+// function toggleLiveInput() {
+// 	if (isPlaying) {
+// 		//stop playing and return
+// 		sourceNode = null;
+// 		analyser = null;
+// 		isPlaying = false;
+// 		if (!window.cancelAnimationFrame)
+// 			window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+// 		window.cancelAnimationFrame(rafID);
+// 		if(median){
+// 			pitchElem.innerText = calcMedian(pitchArray);
+// 			pitchArray = [];
+// 		} else {
+// 			median = calcMedian(pitchArray);
+// 			pitchArray = [];
+// 		}
+// 	} else {
+// 		isPlaying = true;
+// 		getUserMedia(
+// 			{
+// 				"audio": {
+// 					"mandatory": {
+// 						"googEchoCancellation": "false",
+// 						"googAutoGainControl": "false",
+// 						"googNoiseSuppression": "false",
+// 						"googHighpassFilter": "false"
+// 					},
+// 					"optional": []
+// 				},
+// 			}, gotStream);
+// 	}
+// }
+
+function startVoice(){
+	getUserMedia(
+		{
+			"audio": {
+				"mandatory": {
+					"googEchoCancellation": "false",
+					"googAutoGainControl": "false",
+					"googNoiseSuppression": "false",
+					"googHighpassFilter": "false"
 				},
-			}, gotStream);
+				"optional": []
+			},
+		}, gotStream);
+}
+
+function stopVoice(){
+	sourceNode = null;
+	analyser = null;
+	if (!window.cancelAnimationFrame)
+		window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+	window.cancelAnimationFrame(rafID);
+	if(!median){
+		median = calcMedian(pitchArray);
+		pitchArray = [];
 	}
 }
 
