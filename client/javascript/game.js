@@ -60,6 +60,8 @@ var one_line = /\n/g;
 var first_char = /\S/;
 var textSong = '';
 var textInteriorSong = '';
+var enableSing = false;
+var recognition = new webkitSpeechRecognition();
 
 var config = {
     type: Phaser.AUTO,
@@ -254,17 +256,9 @@ function create() {
 }
 
 function initSpeechTotext() {
-    var langs = [['עברית', ['he']]];
-    for (var i = 0; i < langs.length; i++) {
-        select_language.options[i] = new Option(langs[i][0], i);
-    }
-    select_language.selectedIndex = 0;
-    updateCountry();
-    select_dialect.selectedIndex = 0;
     if (!('webkitSpeechRecognition' in window)) {
         upgrade();
     } else {
-        var recognition = new webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
 
@@ -327,17 +321,6 @@ function linebreak(s) {
 
 function capitalize(s) {
     return s.replace(first_char, function (m) { return m.toUpperCase(); });
-}
-
-function updateCountry() {
-    for (var i = select_dialect.options.length - 1; i >= 0; i--) {
-        select_dialect.remove(i);
-    }
-    var list = langs[select_language.selectedIndex];
-    for (var i = 1; i < list.length; i++) {
-        select_dialect.options.add(new Option(list[i][1], list[i][0]));
-    }
-    select_dialect.style.visibility = list[1].length == 1 ? 'hidden' : 'visible';
 }
 
 function update() {
@@ -465,8 +448,10 @@ const nextTurn = (self) => {
     if (goodInput || goodEnemyInput) {
         goodInput = false;
         goodEnemyInput = false;
-         setTimeout(() => {
-            sing();
+        sing();
+        enableSing = true;
+        setTimeout(() => {
+            enableSing = false;
         }, 10000);
         setTimeout(() => {
             hideKeys();
@@ -482,12 +467,12 @@ const nextTurn = (self) => {
 }
 
 const sing = () => {
-    if (recognizing) {
+    if (recognizing && !enableSing) {
         recognition.stop();
         return;
     }
     final_transcript = '';
-    recognition.lang = select_dialect.value;
+    recognition.lang = 'he';
     recognition.start();
     ignore_onend = false;
     textSong = '';
