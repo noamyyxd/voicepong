@@ -1,0 +1,2 @@
+C:\Users\noamv\Desktop\VoicePong\voicepong\VoicePongServer\Server\obj\Debug\Server.csprojAssemblyReference.cache
+C:\Users\noamv\Desktop\VoicePong\voicepong\VoicePongServer\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
