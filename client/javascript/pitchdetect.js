@@ -17,6 +17,12 @@ var detectorElem,
 	detuneElem,
 	detuneAmount;
 
+function calcMedian(arr) {
+	const mid = Math.floor(arr.length / 2);
+	const nums = [...arr].sort((a, b) => a - b);
+	return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+}
+
 window.onload = function () {
 	audioContext = new AudioContext();
 	MAX_SIZE = Math.max(4, Math.floor(audioContext.sampleRate / 5000));	// corresponds to a 5kHz signal
@@ -75,13 +81,43 @@ function error() {
 function getUserMedia(dictionary, callback) {
 	try {
 		navigator.getUserMedia =
-			navigator.getUserMedia ||
-			navigator.webkitGetUserMedia ||
+			navigator.getUserMedia || 
+			navigator.mediaDevices.getUserMedia ||
+			navigator.mediaDevices.webkitGetUserMedia ||
 			navigator.mozGetUserMedia;
 		navigator.getUserMedia(dictionary, callback, error);
 	} catch (e) {
 		alert('getUserMedia threw exception :' + e);
 	}
+}
+
+function togglePlayback() {
+    if (isPlaying) {
+        //stop playing and return
+        sourceNode.stop( 0 );
+        sourceNode = null;
+        analyser = null;
+        isPlaying = false;
+		if (!window.cancelAnimationFrame)
+			window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+        window.cancelAnimationFrame( rafID );
+        return "start";
+    }
+
+    sourceNode = audioContext.createBufferSource();
+    sourceNode.buffer = theBuffer;
+    sourceNode.loop = true;
+
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    sourceNode.connect( analyser );
+    analyser.connect( audioContext.destination );
+    sourceNode.start( 0 );
+    isPlaying = true;
+    isLiveInput = false;
+    updatePitch();
+
+    return "stop";
 }
 
 function gotStream(stream) {
@@ -95,46 +131,34 @@ function gotStream(stream) {
 	updatePitch();
 }
 
-function calcMedian(arr) {
-	const mid = Math.floor(arr.length / 2);
-	const nums = [...arr].sort((a, b) => a - b);
-	return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
-}
-
-function toggleLiveInput() {
-	if (isPlaying) {
-		//stop playing and return
-		sourceNode = null;
-		analyser = null;
-		isPlaying = false;
-		if (!window.cancelAnimationFrame)
-			window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
-		window.cancelAnimationFrame(rafID);
-		if(median){
-			pitchElem.innerText = calcMedian(pitchArray) > median ? 1 : -1;
-		} else {
-			median = calcMedian(pitchArray);
-			pitchArray = [];
-		}
-	} else {
-		isPlaying = true;
-		getUserMedia(
-			{
-				"audio": {
-					"mandatory": {
-						"googEchoCancellation": "false",
-						"googAutoGainControl": "false",
-						"googNoiseSuppression": "false",
-						"googHighpassFilter": "false"
-					},
-					"optional": []
+function startVoice() {
+	getUserMedia(
+		{
+			"audio": {
+				"mandatory": {
+					"googEchoCancellation": "false",
+					"googAutoGainControl": "false",
+					"googNoiseSuppression": "false",
+					"googHighpassFilter": "false"
 				},
-			}, gotStream);
-	}
+				"optional": []
+			},
+		}, gotStream);
 }
 
-function textInButton() {
-	return isPlaying ? "stop" : "start";
+function stopVoice() {
+	sourceNode = null;
+	analyser = null;
+	isPlaying = false;
+	if (!window.cancelAnimationFrame)
+		window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+	window.cancelAnimationFrame(rafID);
+	if (median) {
+		// pitchElem.innerText = pitchArray[pitchArray.length - 1];
+	} else {
+		median = calcMedian(pitchArray);
+		pitchArray = [];
+	}
 }
 
 var rafID = null;
@@ -158,7 +182,6 @@ function centsOffFromPitch(frequency, note) {
 }
 
 var MIN_SAMPLES = 0;  // will be initialized when AudioContext is created.
-var GOOD_ENOUGH_CORRELATION = 0.9; // this is the "bar" for how close a correlation needs to be
 
 function autoCorrelate(buf, sampleRate) {
 	var SIZE = buf.length;
@@ -186,7 +209,7 @@ function autoCorrelate(buf, sampleRate) {
 		}
 		correlation = 1 - (correlation / MAX_SAMPLES);
 		correlations[offset] = correlation; // store it, for the tweaking we need to do below.
-		if ((correlation > GOOD_ENOUGH_CORRELATION) && (correlation > lastCorrelation)) {
+		if ((correlation > 0.9) && (correlation > lastCorrelation)) {
 			foundGoodCorrelation = true;
 			if (correlation > best_correlation) {
 				best_correlation = correlation;
@@ -199,16 +222,15 @@ function autoCorrelate(buf, sampleRate) {
 		lastCorrelation = correlation;
 	}
 	if (best_correlation > 0.01) {
-		// console.log("f = " + sampleRate/best_offset + "Hz (rms: " + rms + " confidence: " + best_correlation + ")")
 		return sampleRate / best_offset;
 	}
 	return -1;
-	//	var best_frequency = sampleRate/best_offset;
 }
 
 function updatePitch(time) {
 	var cycles = new Array;
 	analyser.getFloatTimeDomainData(buf);
+	console.log(buf);
 	var ac = autoCorrelate(buf, audioContext.sampleRate);
 
 	if (DEBUGCANVAS) {  // This draws the current waveform, useful for debugging
@@ -245,6 +267,7 @@ function updatePitch(time) {
 		detectorElem.className = "confident";
 		pitch = ac;
 		pitchElem.innerText = Math.round(pitch);
+		console.log(pitchElem.innerText);
 		pitchArray.push(pitchElem.innerText);
 		var note = noteFromPitch(pitch);
 		noteElem.innerHTML = noteStrings[note % 12];

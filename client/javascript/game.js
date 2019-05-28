@@ -153,9 +153,6 @@ function create() {
         { fontSize: `${((window.innerWidth + window.innerHeight) / 2) * 0.5}px`, fill: '#000' }).setOrigin(0.5, 0.5);
     loserText.visible = false;
 
-    // Set controller
-    controller.initiate();
-
     cursorOne = this.input.keyboard.addKeys({
         'up': Phaser.Input.Keyboard.KeyCodes.UP,
         'down': Phaser.Input.Keyboard.KeyCodes.DOWN,
@@ -236,7 +233,17 @@ function create() {
 
     this.socket.on('startGame', () => {
         console.log("started game");
-        disk.setPosition((field.displayWidth * 2), (field.displayHeight * 2));
+        tuneText = this.add.text(window.innerWidth * 0.5, window.innerHeight * 0.5, 'A weird sentence to read', // switch text with a request to server for a sentence 
+        { fontSize: `${((window.innerWidth + window.innerHeight) / 2) * 0.07}px`, fill: '#000' }).setOrigin(0.5, 0.5);
+        time = 5000;
+        controller.tune(time);
+
+        setTimeout(() => {   
+            tuneText.visible = false; 
+            // Set controller
+            controller.initiate();
+            disk.setPosition((field.displayWidth * 2), (field.displayHeight * 2));
+        }, time + 100);
     });
 
     this.socket.on('keyChosen', (key) => {
