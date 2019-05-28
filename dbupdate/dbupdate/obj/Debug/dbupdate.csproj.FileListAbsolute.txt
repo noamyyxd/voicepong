@@ -1,0 +1,10 @@
+c:\users\noamv\source\repos\dbupdate\dbupdate\obj\Debug\dbupdate.csprojAssemblyReference.cache
+c:\users\noamv\source\repos\dbupdate\dbupdate\obj\Debug\dbupdate.csproj.CoreCompileInputs.cache
+c:\users\noamv\source\repos\dbupdate\dbupdate\bin\Debug\dbupdate.exe.config
+c:\users\noamv\source\repos\dbupdate\dbupdate\bin\Debug\dbupdate.exe
+c:\users\noamv\source\repos\dbupdate\dbupdate\bin\Debug\dbupdate.pdb
+c:\users\noamv\source\repos\dbupdate\dbupdate\bin\Debug\MySql.Data.dll
+c:\users\noamv\source\repos\dbupdate\dbupdate\bin\Debug\MySql.Data.xml
+c:\users\noamv\source\repos\dbupdate\dbupdate\obj\Debug\dbupdate.csproj.CopyComplete
+c:\users\noamv\source\repos\dbupdate\dbupdate\obj\Debug\dbupdate.exe
+c:\users\noamv\source\repos\dbupdate\dbupdate\obj\Debug\dbupdate.pdb
