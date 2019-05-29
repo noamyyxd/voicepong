@@ -16,7 +16,20 @@ namespace Server.Controllers
 
             if (songs[0].Count == 1)
             {
+                if (songs[0][0].StartsWith("\n"))
+                    songs[0][0] = songs[0][0].Substring(1);
+
+                if (songs[0][0].EndsWith("\n"))
+                    songs[0][0] = songs[0][0].Substring(0, songs[0][0].Length - 1);
+
+                if (songs[1][0].StartsWith("\n"))
+                    songs[1][0] = songs[1][0].Substring(1);
+
+                if (songs[1][0].EndsWith("\n"))
+                    songs[1][0] = songs[1][0].Substring(0, songs[1][0].Length - 1);
+
                 string url = getUrl(songs[0][0] + " " + songs[1][0]);
+                
                 return Json("{\"result\": \"true\", \"url\": \"" + url + "\"}");
             }
 
@@ -32,6 +45,18 @@ namespace Server.Controllers
 
             if(songs[0].Count == 1)
             {
+                if (songs[0][0].StartsWith("\n"))
+                    songs[0][0] = songs[0][0].Substring(1);
+
+                if (songs[0][0].EndsWith("\n"))
+                    songs[0][0] = songs[0][0].Substring(0, songs[0][0].Length - 1);
+
+                if (songs[1][0].StartsWith("\n"))
+                    songs[1][0] = songs[1][0].Substring(1);
+
+                if (songs[1][0].EndsWith("\n"))
+                    songs[1][0] = songs[1][0].Substring(0, songs[1][0].Length - 1);
+
                 string url = getUrl(songs[0][0] + " " + songs[1][0]);
                 return Json("{\"result\": \"true\", \"url\": \"" + url + "\"}");
             }
