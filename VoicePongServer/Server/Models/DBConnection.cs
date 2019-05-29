@@ -101,11 +101,9 @@ namespace Server.Models
             string query = sql;
 
             //Create a list to store the result
-            List<string>[] list = new List<string>[4];
+            List<string>[] list = new List<string>[2];
             list[0] = new List<string>();
             list[1] = new List<string>();
-            list[2] = new List<string>();
-            list[3] = new List<string>();
 
             //Open connection
             if (this.OpenConnection() == true)
@@ -120,10 +118,8 @@ namespace Server.Models
                     //Read the data and store them in the list
                     while (dataReader.Read())
                     {
-                        list[0].Add(dataReader["id"] + "");
-                        list[1].Add(dataReader["artist"] + "");
-                        list[2].Add(dataReader["title"] + "");
-                        list[3].Add(dataReader["lyrics"] + "");
+                        list[0].Add(dataReader["artist"] + "");
+                        list[1].Add(dataReader["title"] + "");
                     }
 
                     //close Data Reader
